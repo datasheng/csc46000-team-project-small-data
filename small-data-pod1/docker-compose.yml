@@ -1,0 +1,16 @@
+version: '3'
+services:
+  postgres-db:
+    image: jkabir000/460-container:latest
+    container_name: my_postgres_container
+    environment:
+      POSTGRES_USER: yourusername #worry about this stuff another time
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: yourdbname
+    ports:
+      - "5432:5432"  # Maps the container's PostgreSQL port to your machine's port
+    volumes:
+      - db_data:/var/lib/postgresql/data  # Persistent storage for the database
+
+volumes:
+  db_data:
