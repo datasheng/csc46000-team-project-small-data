@@ -1,6 +1,9 @@
 import requests
 import json
 from datetime import datetime
+import os 
+from dotenv import load_dotenv
+load_dotenv()
 
 class TechnicalIndicators:
     def __init__(self, ticker: str, api_key: str):
@@ -131,7 +134,7 @@ class TechnicalIndicators:
         return filtered_macd_values
 ''' This is a sample of instantiation and usage
 if __name__ == "__main__":
-    technical_indicators = TechnicalIndicators(ticker='AAPL', api_key = "NTOX75FCMPTPTGTI")
+    technical_indicators = TechnicalIndicators(ticker='AAPL', api_key = "")
 
     start_date = "2024-11-06"
     macd_data = technical_indicators.get_macd_values(start_date=start_date, interval="daily")
