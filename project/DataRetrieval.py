@@ -36,7 +36,7 @@ class DataRetrieval:
                 # Calculate basic metrics
                 row["P/E Ratio"] = row["Close"] / trailing_eps
                 row["Dividend Yield"] = row["Dividends"] / row["Close"]
-                row["Market Cap"] = shares_outstanding / row["Close"]
+                row["Market Cap"] = shares_outstanding * row["Close"]
 
                 data.append(row)
 
