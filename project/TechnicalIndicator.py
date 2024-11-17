@@ -4,7 +4,9 @@ from datetime import datetime
 import os 
 from dotenv import load_dotenv
 load_dotenv()
+import pandas as pd
 
+# Each ticker should use the class once per day (limit of 5) since data will not change afterwards.
 class TechnicalIndicators:
     def __init__(self, ticker: str, api_key: str):
         """
@@ -50,7 +52,7 @@ class TechnicalIndicators:
         data = r.json()
         return data
 
-    # Public method: get_rsi
+    # Public method: get_rsi (not recommended for direct use)
     def get_rsi(self, start_date: str, interval: str = 'daily', time_period: int = 14):
         """
         Fetches the Relative Strength Index (RSI)
@@ -65,7 +67,7 @@ class TechnicalIndicators:
         """
         return self._get_technical_data('RSI', interval, start_date, time_period)
 
-    # Public method: get_atr
+    # Public method: get_atr (not recommended for direct use)
     def get_atr(self, start_date: str, interval: str = 'daily', time_period: int = 14):
         """
         Fetches the Average True Range (ATR) for a given stock ticker.
@@ -80,7 +82,7 @@ class TechnicalIndicators:
         """
         return self._get_technical_data('ATR', interval, start_date, time_period)
 
-    # Public method: get_adx
+    # Public method: get_adx (not recommended for direct use)
     def get_adx(self, start_date: str, interval: str = 'daily', time_period: int = 14):
         """
         Fetches the Average Directional Index (ADX) for a given stock ticker, filtered by the start date.
@@ -95,7 +97,7 @@ class TechnicalIndicators:
         """
         return self._get_technical_data('ADX', interval, start_date, time_period)
 
-    # Public method: get_macd
+    # Public method: get_macd (not recommended for direct use)
     def get_macd(self, start_date: str, interval: str = 'daily'):
         """
         Fetches the MACD (Moving Average Convergence Divergence) values, which are the difference between the EMA 12 and EMA 26,
@@ -132,12 +134,64 @@ class TechnicalIndicators:
         filtered_macd_values = [entry for entry in macd_values if datetime.strptime(entry[0], "%Y-%m-%d") >= start_date_obj]
 
         return filtered_macd_values
-''' This is a sample of instantiation and usage
-if __name__ == "__main__":
-    technical_indicators = TechnicalIndicators(ticker='AAPL', api_key = "")
 
-    start_date = "2024-11-06"
-    macd_data = technical_indicators.get_macd_values(start_date=start_date, interval="daily")
+    # Public method: get_indicators
+    def get_indicators(self, start_date: str, interval: str = 'daily', time_period: int = 14):
+        """
+        Fetches all technical indicator data (RSI, ATR, ADX, MACD) and returns it as a DataFrame.
+        
+        Parameters:
+        - start_date (str): The start date in 'YYYY-MM-DD' format.
+        - interval (str): The time interval between data points (default is 'daily').
+        - time_period (int): The number of periods used for calculations (default is 14).
 
-    print("Filtered MACD Data:", macd_data)
+        Returns:
+        - pandas DataFrame in CSV format: Please convert csv to DataFrame to read data
+        """
+        try:
+          # Obtain individual technical indicators
+          rsi_data = self.get_rsi(start_date, interval, time_period)
+          atr_data = self.get_atr(start_date, interval, time_period)
+          adx_data = self.get_adx(start_date, interval, time_period)
+          macd_data = self.get_macd(start_date, interval)
+
+          # Create a dictionary of lists to convert to DataFrame later.
+          all_data = {
+              'Date': [],
+              'RSI': [],
+              'ATR': [],
+              'ADX': [],
+              'MACD': []
+          }
+
+          dates = sorted(set([entry[0] for entry in rsi_data + atr_data + adx_data + macd_data]), reverse=True)
+
+          for date in dates:
+              all_data['Date'].append(datetime.strptime(date, "%Y-%m-%d"))
+              all_data['RSI'].append(next((rsi for rsi_date, rsi in rsi_data if rsi_date == date), None))
+              all_data['ATR'].append(next((atr for atr_date, atr in atr_data if atr_date == date), None))
+              all_data['ADX'].append(next((adx for adx_date, adx in adx_data if adx_date == date), None))
+              all_data['MACD'].append(next((macd for macd_date, macd in macd_data if macd_date == date), None))
+
+          # Create DataFrame
+          df = pd.DataFrame(all_data)
+          df.set_index('Date', inplace=True)
+
+          csv_string = df.to_csv(index=True)
+          return csv_string
+        # If API request fails, must have reached daily limit (5)
+        except Exception as e:
+          print("API Key Failed")
+          return None
+
+'''
+technical_indicators = TechnicalIndicators(ticker='AMD', api_key="")
+
+# StringIO needs to be used because function get_indicators() returns csv_string but not into file. Real file must be created by user of class.
+from io import StringIO
+
+start_date = "YYYY-MM-DD"
+csv_data = technical_indicators.get_indicators(start_date, "daily")
+df = pd.read_csv(StringIO(csv_data), index_col='Date')
+print(df)
 '''
