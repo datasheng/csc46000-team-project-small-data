@@ -3,6 +3,7 @@ from textblob import TextBlob
 import json
 import numpy as np  
 import yfinance as yf
+import pandas as pd
 
 class NewsAnalyzer:
     def __init__(self, api_key, ticker):
@@ -70,7 +71,7 @@ class NewsAnalyzer:
         std_deviation = np.std(self.sentiment_scores)
         
         return mean_score, median_score, std_deviation
-
+    # Private method: fetch_news
     def fetch_news(self):
         """
         Fetches news articles related to the company using the NewsAPI service.
@@ -100,40 +101,36 @@ class NewsAnalyzer:
         else:
             print(f"Error fetching news: {response.status_code}")
     
-    def display_results(self):
+    def export_sentiment(self):
         """
-        Outputs list of json objects for related ticker symbol: 
-        {'title': '', 'description':'','source':'','url':'', 'sentiment_score':}
-
-        Parameters:
-        None
+        Converts the processed articles into a DataFrame and returns as csv string
         """
+        self.fetch_news()
         try:
             processed_articles = self.process_articles()
-            mean_score, median_score, std_deviation = self.calculate_statistics()
-            
+             
             if processed_articles:
-                print("\nProcessed Articles:")
-                print(json.dumps(processed_articles, indent=4))
-            
-            if mean_score is not None:
-                print(f"\nSentiment Statistics:")
-                print(f"Mean Sentiment Score: {mean_score:.4f}")
-                print(f"Median Sentiment Score: {median_score:.4f}")
-                print(f"Standard Deviation of Sentiment Scores: {std_deviation:.4f}")
+                # Convert the list of processed articles into a DataFrame
+                df = pd.DataFrame(processed_articles)
+                csv_string = df.to_csv(index=False)
+                return csv_string
             else:
-                print("No valid sentiment data to calculate statistics.")
+                print("No articles to display.")
+        
         except ValueError as e:
             print(f"Error: {e}")
 
-''' Sample Instantiation and method usage
-api_key = 'bc2130c922b14eadb55a749f3230f54e' # Sample key
+'''
+api_key = '' # Sample key
 ticker = 'AAPL'
+# StringIO needs to be used because function export_sentiment() returns csv_string but not into file. Real file must be created by user of class.
+from io import StringIO
 
 # Instantiate the NewsAnalyzer class with ticker and api_key
 news_analyzer = NewsAnalyzer(api_key, ticker)
 
-# Call methods to fetch news and results
-news_analyzer.fetch_news()
-news_analyzer.display_results()
+# Export the csv and convert
+csv_data = news_analyzer.export_sentiment()
+df = pd.read_csv(StringIO(csv_data))
+print(df)
 '''
