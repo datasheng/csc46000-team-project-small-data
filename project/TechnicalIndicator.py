@@ -2,13 +2,11 @@ import requests
 import json
 from datetime import datetime
 import os 
-from dotenv import load_dotenv
-load_dotenv()
 import pandas as pd
 
 # Each ticker should use the class once per day (limit of 5) since data will not change afterwards.
 class TechnicalIndicators:
-    def __init__(self, ticker: str, api_key: str):
+    def __init__(self, ticker: str):
         """
         Initializes the TechnicalIndicators class with a stock ticker symbol and an Alpha Vantage API key.
         
@@ -16,8 +14,10 @@ class TechnicalIndicators:
         - ticker (str): The stock symbol (e.g., 'AAPL' for Apple).
         - api_key (str): Your Alpha Vantage API key.
         """
+        from dotenv import load_dotenv
+        load_dotenv()
         self.ticker = ticker
-        self.api_key = api_key
+        self.api_key = os.getenv("ALPHA_API_KEY")
 
     # Private method: _get_technical_data (intended for internal use)
     def _get_technical_data(self, function: str, interval: str, start_date: str, time_period):
@@ -185,13 +185,13 @@ class TechnicalIndicators:
           return None
 
 '''
-technical_indicators = TechnicalIndicators(ticker='AMD', api_key="")
+technical_indicators = TechnicalIndicators(ticker='AMD')
 
 # StringIO needs to be used because function get_indicators() returns csv_string but not into file. Real file must be created by user of class.
 from io import StringIO
 
 start_date = "YYYY-MM-DD"
-csv_data = technical_indicators.get_indicators(start_date, "daily")
+csv_data = technical_indicators.get_indicators(start_date)
 df = pd.read_csv(StringIO(csv_data), index_col='Date')
 print(df)
 '''
