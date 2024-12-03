@@ -177,21 +177,24 @@ class TechnicalIndicators:
           df = pd.DataFrame(all_data)
           df.set_index('Date', inplace=True)
 
-          csv_string = df.to_csv(index=True)
-          return csv_string
+          filename = f"{self.ticker}_technical_indicators.csv"
+          df.to_csv(filename)
+          print(f"Data saved to {filename}")
         # If API request fails, must have reached daily limit (5)
         except Exception as e:
           print("API Key Failed")
           return None
 
-'''
-technical_indicators = TechnicalIndicators(ticker='AMD')
 
-# StringIO needs to be used because function get_indicators() returns csv_string but not into file. Real file must be created by user of class.
-from io import StringIO
 
-start_date = "YYYY-MM-DD"
-csv_data = technical_indicators.get_indicators(start_date)
-df = pd.read_csv(StringIO(csv_data), index_col='Date')
-print(df)
-'''
+
+if __name__ == "__main__":
+    tickers = ['AMD', 'NVDA', 'INTC']
+    start_date = "2022-01-01"
+    for ticker in tickers:
+        technical_indicators = TechnicalIndicators(ticker)
+        technical_indicators.get_indicators(start_date)
+
+# Example usage of the TechnicalIndicators class
+#technical_indicators = TechnicalIndicators(ticker='AAPL')
+#print(technical_indicators.get_indicators('2021-01-01'))
