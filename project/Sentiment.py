@@ -116,8 +116,9 @@ class NewsAnalyzer:
             if processed_articles:
                 # Convert the list of processed articles into a DataFrame
                 df = pd.DataFrame(processed_articles)
-                csv_string = df.to_csv(index=False)
-                return csv_string
+                filename = f"{self.ticker}_sentiments.csv"
+                df.to_csv(filename)
+                print(f"Data saved to {filename}")
             else:
                 print("No articles to display.")
         
@@ -138,3 +139,9 @@ csv_data = news_analyzer.export_sentiment()
 df = pd.read_csv(StringIO(csv_data))
 print(df)
 '''
+if __name__ == "__main__":
+    tickers = ['AMD', 'NVDA', 'INTC']
+    start_date = "2022-01-01"
+    for ticker in tickers:
+        news_analyzer = NewsAnalyzer(ticker)
+        news_analyzer.export_sentiment()
