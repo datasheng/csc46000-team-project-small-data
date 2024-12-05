@@ -2,13 +2,11 @@ import requests
 import json
 from datetime import datetime
 import os 
-from dotenv import load_dotenv
-load_dotenv()
 import pandas as pd
 
 # Each ticker should use the class once per day (limit of 5) since data will not change afterwards.
 class TechnicalIndicators:
-    def __init__(self, ticker: str, api_key: str):
+    def __init__(self, ticker: str):
         """
         Initializes the TechnicalIndicators class with a stock ticker symbol and an Alpha Vantage API key.
         
@@ -16,8 +14,10 @@ class TechnicalIndicators:
         - ticker (str): The stock symbol (e.g., 'AAPL' for Apple).
         - api_key (str): Your Alpha Vantage API key.
         """
+        from dotenv import load_dotenv
+        load_dotenv()
         self.ticker = ticker
-        self.api_key = api_key
+        self.api_key = os.getenv("ALPHA_API_KEY")
 
     # Private method: _get_technical_data (intended for internal use)
     def _get_technical_data(self, function: str, interval: str, start_date: str, time_period):
@@ -177,21 +177,24 @@ class TechnicalIndicators:
           df = pd.DataFrame(all_data)
           df.set_index('Date', inplace=True)
 
-          csv_string = df.to_csv(index=True)
-          return csv_string
+          filename = f"{self.ticker}_technical_indicators.csv"
+          df.to_csv(filename)
+          print(f"Data saved to {filename}")
         # If API request fails, must have reached daily limit (5)
         except Exception as e:
           print("API Key Failed")
           return None
 
-'''
-technical_indicators = TechnicalIndicators(ticker='AMD', api_key="")
 
-# StringIO needs to be used because function get_indicators() returns csv_string but not into file. Real file must be created by user of class.
-from io import StringIO
 
-start_date = "YYYY-MM-DD"
-csv_data = technical_indicators.get_indicators(start_date, "daily")
-df = pd.read_csv(StringIO(csv_data), index_col='Date')
-print(df)
-'''
+
+if __name__ == "__main__":
+    tickers = ['AMD', 'NVDA', 'INTC']
+    start_date = "2022-01-01"
+    for ticker in tickers:
+        technical_indicators = TechnicalIndicators(ticker)
+        technical_indicators.get_indicators(start_date)
+
+# Example usage of the TechnicalIndicators class
+#technical_indicators = TechnicalIndicators(ticker='AAPL')
+#print(technical_indicators.get_indicators('2021-01-01'))

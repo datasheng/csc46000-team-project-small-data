@@ -4,17 +4,21 @@ import json
 import numpy as np  
 import yfinance as yf
 import pandas as pd
+import os
+
 
 class NewsAnalyzer:
-    def __init__(self, api_key, ticker):
+    def __init__(self, ticker):
         """
-        Initializes the NewsAnalyzer instance with the provided API key and ticker symbol.
+        Initializes the NewsAnalyzer instance with the ticker symbol.
 
         Parameters:
         - api_key (str): The API key for accessing the NewsAPI service.
         - ticker (str): The ticker symbol for identifying the company.
         """
-        self.api_key = api_key
+        from dotenv import load_dotenv
+        load_dotenv()
+        self.api_key = os.getenv("NEWS_API_KEY")
         self.ticker = ticker
         self.company_name = self.get_company_name_from_ticker(ticker)
         self.articles = []
@@ -112,8 +116,9 @@ class NewsAnalyzer:
             if processed_articles:
                 # Convert the list of processed articles into a DataFrame
                 df = pd.DataFrame(processed_articles)
-                csv_string = df.to_csv(index=False)
-                return csv_string
+                filename = f"{self.ticker}_sentiments.csv"
+                df.to_csv(filename)
+                print(f"Data saved to {filename}")
             else:
                 print("No articles to display.")
         
@@ -126,11 +131,17 @@ ticker = 'AAPL'
 # StringIO needs to be used because function export_sentiment() returns csv_string but not into file. Real file must be created by user of class.
 from io import StringIO
 
-# Instantiate the NewsAnalyzer class with ticker and api_key
-news_analyzer = NewsAnalyzer(api_key, ticker)
+# Instantiate the NewsAnalyzer class with ticker 
+news_analyzer = NewsAnalyzer(ticker)
 
 # Export the csv and convert
 csv_data = news_analyzer.export_sentiment()
 df = pd.read_csv(StringIO(csv_data))
 print(df)
 '''
+if __name__ == "__main__":
+    tickers = ['AMD', 'NVDA', 'INTC']
+    start_date = "2022-01-01"
+    for ticker in tickers:
+        news_analyzer = NewsAnalyzer(ticker)
+        news_analyzer.export_sentiment()
