@@ -55,9 +55,11 @@ def analyze_event_impact(historical_data, event_date, window=30):
     """
     try:
         historical_data = historical_data.copy()
-        historical_data['Date'] = historical_data['Date'].dt.tz_localize(None)
         
-        event_date = pd.to_datetime(event_date)
+        historical_data['Date'] = pd.to_datetime(historical_data['Date'], utc=True)
+        
+
+        event_date = pd.to_datetime(event_date, utc=True)
         
         # data around event
         mask = (historical_data['Date'] >= event_date - pd.Timedelta(days=window)) & \
@@ -66,10 +68,18 @@ def analyze_event_impact(historical_data, event_date, window=30):
         event_period = historical_data.loc[mask]
         
         if len(event_period) == 0:
+            print(f"No data found around event date: {event_date}")
             return None
             
-        pre_price = event_period[event_period['Date'] < event_date]['Close'].mean()
-        post_price = event_period[event_period['Date'] > event_date]['Close'].mean()
+        pre_event = event_period[event_period['Date'] < event_date]
+        post_event = event_period[event_period['Date'] > event_date]
+        
+        if len(pre_event) == 0 or len(post_event) == 0:
+            print(f"Insufficient data around event date: {event_date}")
+            return None
+            
+        pre_price = pre_event['Close'].mean()
+        post_price = post_event['Close'].mean()
         price_change = ((post_price - pre_price) / pre_price) * 100
         
         return {
