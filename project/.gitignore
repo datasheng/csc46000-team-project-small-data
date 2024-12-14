@@ -2,3 +2,5 @@
 .env
 project/data/combined_data.csv 
 project\data\combined_data.csv
+
+data/combined_data.csv
