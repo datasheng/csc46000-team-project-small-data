@@ -6,6 +6,9 @@ from datetime import datetime
 import sys
 from pathlib import Path
 
+# cd project
+# streamlit run 🏠_Home.py
+
 # add project directory to path
 project_dir = Path(__file__).parent
 sys.path.append(str(project_dir))
